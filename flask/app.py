@@ -15,7 +15,7 @@ def generate_image():
     gpt_output = get_dalle_prompt(whisper_output)
     dalle_output = generate_dalle_image(gpt_output)
     print(gpt_output)
-    return {'image_link':dalle_output},200
+    return {'image_link':dalle_output,'transcribed_text':whisper_output},200
 
 if __name__ == "__main__":
     base_model = whisper.load_model('base')

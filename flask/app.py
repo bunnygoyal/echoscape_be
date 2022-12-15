@@ -3,8 +3,10 @@ import openai
 import whisper
 from flask import Flask, request, request
 from generation import get_dalle_prompt,generate_dalle_image, transcribe_audio
+from flask_cors import CORS;
 
 app = Flask(__name__)
+CORS(app)
 openai.api_key = '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' #my key
 
 @app.route('/api/generate_image', methods=['POST'])

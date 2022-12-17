@@ -1,19 +1,10 @@
 import openai
-
-#openai.api_key = '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'
+import whisper
+import os
 openai.api_key = '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' #my key
-#whisper_output = 'hey, so what I want is to get an image of an astronaut flying on a unicorn with blue flames in space'
-#whisper_output = "I've got a basic idea for the image, What we need is to make a human from future, probably from year 2500 posing a selfie"
-#whisper_output = "So basically what I want is, to generate an image where an astronaut is resting in space resort "
-#whisper_output = "so the image that I'm looking for is an image of a cat wearing a tuxedo"  
-#whisper_output = "I'm looking for an image which was photo of the year of a tuxido cat 35mm with dramatic lights captured from canon f2.5 and magnificent cover"
-#whisper_output = 'Generate an image of a nurse'
-#image_description = 'A cat wearing a tuxedo'
 def find_keywords(sentence):
     response = openai.Completion.create(
       model="text-davinci-002",
-#    prompt=f"extract key words from the given sentence\nsentence:This is a modern fiction story\nkeywords: Modern fiction\nsentence:This story is written for children\nkeywords: children\nsentence:The story is set in a park in a neighborhood\nkeywords: park \nsentence: The story is about friendship, teamwork, and courage.\nkeywords: friendship, teamwork, courage\nsentence: The story is set in Nathan's house and the temple in Albania\nkeywords: temple of Albania\nsentence: any\nkeywords: any\nsentence: {sentence}\nkeywords: ",
-#    prompt = f'Extract key words from the given sentence. Create a summarized sentence fragment with original meaning using keywords\nsentence {sentence}\n summarized sentence:',
     prompt = f'Summarize the given sentence.\nsentence: {sentence}\nsummarized sentence:',
       temperature=0,
       max_tokens=30,
@@ -88,7 +79,31 @@ def generate_dalle_image(description):
   print(img_response)
   return img_response['data'][0]['url']
 
-def transcribe_audio(base_model,audio_path):
-  result = base_model.transcribe(audio_path)
+def detect_language(audio,model):
+  mel = whisper.log_mel_spectrogram(audio).to(model.device)
+  # detect the spoken language
+  _, probs = model.detect_language(mel)
+  print(f"Detected language: {max(probs, key=probs.get)}")
+  return max(probs, key=probs.get)
+def transcribe_audio(model,audio_path):
+  audio = whisper.load_audio(audio_path)
+  audio = whisper.pad_or_trim(audio)
+  mel = whisper.log_mel_spectrogram(audio).to(model.device)
+
+  # detect the spoken language
+  _, probs = model.detect_language(mel)
+  print(f"Detected language: {max(probs, key=probs.get)}")
+  language =max(probs, key=probs.get)
+  options = dict(language=language, beam_size=5, best_of=5)
+  transcribe_options = dict(task="transcribe", **options)
+  translate_options = dict(task="translate", **options)
+  transcription = model.transcribe(audio, **transcribe_options,fp16 = False)["text"]
+  translation = model.transcribe(audio, **translate_options,fp16 = False)["text"]
+  print(transcription)
+  print(translation)
+  return translation
+  #detect_language('temp.wav',base_model)
+  result = model.transcribe(audio_path)
+  print(result)
   print(result['text'])
   return result['text']

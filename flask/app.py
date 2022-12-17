@@ -7,7 +7,7 @@ from flask_cors import CORS;
 #from models import Fleurs
 app = Flask(__name__)
 CORS(app)
-openai.api_key = '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' #my key
+openai.api_key = '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' #my key
 
 @app.route('/api/generate_image', methods=['POST'])
 def generate_image():
